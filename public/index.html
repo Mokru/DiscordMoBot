@@ -1,0 +1,91 @@
+<html>
+	<head>
+		<title> Mobot Controll interface </title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	
+	
+	<body>
+	<div id="wrapper">
+		<div id="controllbox">
+		<button onclick="updateVars()">Update Variables </button>
+		<button onclick="refreshVars()">Refesh Variables </button>
+		<br>
+		<br>
+		<label>Soruce Sub</label>
+		<input id="sourceSub" type="text">
+		<br>
+		<label>Home channel</label>
+		<input id="homeChan" type="text">
+		</div>
+		<div id="chatBox">
+		<ul id="chatHook">
+		</ul>
+		</div>
+		<input type="text" id="textBar">
+	</div>
+	</body>
+	
+	<script>
+	
+		var es = new EventSource('/bot');
+		
+		es.onmessage = function (event) {
+		console.log(event.data)
+		$("#chatHook").append("<li> " + event.data + "</li>");
+		$("#controllbox").scrollTop($("#controllbox")[0].scrollHeight);
+		};
+		
+		var refreshVars = function(){
+			$.ajax({
+			url: "/bot",
+			type: "post",
+			headers: {"rtype": "refV"},
+			success:function(data) {
+			console.log(data);
+				$("#sourceSub").val(data.sourceSub);
+				$("#homeChan").val(data.homeChannel);
+			}
+		})};
+		
+		var updateVars = function(){
+			
+			var sourceSub = $("#sourceSub").val();
+			var homeChan = $("#homeChan").val();
+			
+			$.ajax({
+			url: "/bot",
+			type: "post",
+			headers: {"rtype": "upV", "sourceSub": sourceSub, "homeChannel": homeChan,},
+			success:function(data) {
+			console.log(data);
+			console.log($("#homeChan").val() + " , " + $("#sourceSub").val());
+
+			}
+		})};
+		
+		var sendMessage = function(content){
+
+			$.ajax({
+			url: "/bot",
+			type: "POST",
+			headers: {"payload": content, "rtype": "sendM"},
+			
+		});
+		}
+
+		$("#textBar").on('keyup', function(e){
+			if(e.keyCode == 13){
+				var message = $("#textBar").val();
+				sendMessage(message);
+				console.log("Sending message: " + message);
+				$("#textBar").val("");
+			}
+		});
+		
+		refreshVars();
+		
+	</script>
+
+</html>
