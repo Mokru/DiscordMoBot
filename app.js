@@ -24,7 +24,7 @@ app.get('/bot', function (req, res){
 app.get('/', function (req, res){
 	res.setHeader("sourceSub", sourceSub);
 	res.setHeader("homeChannel", homeChannel);
-	res.sendFile('D:/Webdev/nodeexpress/public/index.html');	
+	res.sendFile('../public/index.html');	
 })
 
 app.post('/bot', function (req, res) {
