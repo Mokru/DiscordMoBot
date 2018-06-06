@@ -11,9 +11,23 @@ var path = require('path');
 var reddit = require('redwrap');
 var sourceSub = "all";
 var pref = "!";
-var homeChannel = "spiderman_thread";
+var homeChannel = "a";
 var senderChannel = "";
-console.log(Dtoken);
+const btoa = require('btoa');
+var request = require('request');
+//var $ = require('jQuery');
+
+
+var token;
+var con_key = keys.twot;
+var con_secret = keys.twot_sec;
+var uri_con_key = encodeURIComponent(con_key);
+var uri_con_secret = encodeURIComponent(con_secret);
+var token_cred = uri_con_key + ":" + uri_con_secret;
+var b64_token_cred = btoa(token_cred);
+var b64_token;
+
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/bot', sse.init);
@@ -24,7 +38,7 @@ app.get('/bot', function (req, res){
 app.get('/', function (req, res){
 	res.setHeader("sourceSub", sourceSub);
 	res.setHeader("homeChannel", homeChannel);
-	res.sendFile('../public/index.html');	
+	res.sendFile('index.html');	
 })
 
 app.post('/bot', function (req, res) {
@@ -66,6 +80,37 @@ function handleSearch(err, search, res){
 		console.log(search);
 	}
 }
+
+
+function authorize(){
+	console.log("**Authorizing app**")
+	var headers = {
+	"Authorization": "Basic " + b64_token_cred,
+	"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8."
+	}
+	
+	var options = {
+		url: "https://api.twitter.com/oauth2/token",
+		method: "POST",
+		headers: headers,
+		body: "grant_type=client_credentials"
+	}
+
+	request(options, function(error, response, body){
+		if (!error && response.statusCode == 200){
+			console.log("**Auth succesfull**")
+			token = JSON.parse(body);
+			b64_token = btoa(token.access_token);
+		}else{
+			console.log("ERROR " + response.statusCode)
+			console.log(body)
+		}
+
+	})
+	
+}
+authorize();
+
 
 
 client.on('ready', () => {
@@ -130,7 +175,7 @@ client.on('message', message => {
 			message.guild.channels.find("name", senderChannel).send("taking quality content from http://www.reddit.com/r/" + sourceSub);
 			
 			break;
-			case "coinflip": //COINFLIP
+			case "flip": //COINFLIP
 				result = Math.floor((Math.random() * 2) + 1);
 				if(result ==1){
 					message.guild.channels.find("name", senderChannel).send("Heads");
@@ -180,6 +225,51 @@ client.on('message', message => {
 			}else{
 				console.log("Invalid command structure. arg len; " + (arguments.length - 1));
 			}
+			break;
+				
+			case "tweet": //Twitter follower checkup
+			function searchTweet(ScreenName){
+				var query = ScreenName;
+				var encodedQuery = encodeURIComponent(query);
+
+				console.log("Query is: " + query);
+				var headers = {
+				"Authorization": "Bearer " + token.access_token,
+				"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8."
+				}
+
+				var options = {
+					url: "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=" + query + "&count=1&exclude_replies=true&include_rts=false",
+					method: "GET",
+					headers: headers,
+				}
+
+				request(options, function(error, response, body){
+					if (!error && response.statusCode == 200){
+						var result = JSON.parse(body);
+						if(!result[0]){
+						message.guild.channels.find("name", senderChannel).send("Could not find user timeline | https://twitter.com/" + query );	
+						}else{
+						message.guild.channels.find("name", senderChannel).send("user " + query + " has " + result[0].user.followers_count + " followers");
+							}
+
+					}else{
+						//console.log(b64_token);
+						console.log("ERROR " + response.statusCode)
+						console.log(body)
+						var result = JSON.parse(body);
+						message.guild.channels.find("name", senderChannel).send(result.errors[0].message);
+					}
+
+				})
+
+			}
+				searchTweet(arguments[1]);
+			
+			break;
+			case "help": //Help command
+			var cmdList = "```**Mokru ONLY** " + String.fromCharCode(10) +  "Restart" + String.fromCharCode(10) + "**Everyone**" + String.fromCharCode(10) + "Reddit, setsub, sub, flip, dice, tweet```";
+			message.guild.channels.find("name", senderChannel).send(cmdList);
 			break;
 			default:
 		}
