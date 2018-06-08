@@ -116,13 +116,17 @@ authorize();
 client.on('ready', () => {
 	console.log('I am ready!');
 });
-
+var dadMode = false;
 client.on('message', message => {
 	var prefCheck = message.content.split("");
+	var messageWords = message.content.split(" ");
 	var messageContent = message.content.substr(1);
 	var arguments = messageContent.split(" ");
 	var command = arguments[0];
 	var senderChannel = message.channel.name;
+	var dadKey = "I'm";
+	var mispellKey = "IM";
+	
 	
 	if(prefCheck[0] === pref){
 		switch(command){
@@ -268,12 +272,36 @@ client.on('message', message => {
 			
 			break;
 			case "help": //Help command
-			var cmdList = "```**Mokru ONLY** " + String.fromCharCode(10) +  "Restart" + String.fromCharCode(10) + "**Everyone**" + String.fromCharCode(10) + "Reddit, setsub, sub, flip, dice, tweet```";
+			var cmdList = "```**Mokru ONLY** " + String.fromCharCode(10) +  "Restart" + String.fromCharCode(10) + "**Everyone**" + String.fromCharCode(10) + "Reddit, setsub, sub, flip, dice, tweet, dadMode```";
 			message.guild.channels.find("name", senderChannel).send(cmdList);
+			break;
+			case "dadMode": //Turns dad mode on and off
+			if(arguments[1] === "on"){
+				dadMode = true;
+				console.log(dadMode);
+				message.guild.channels.find("name", senderChannel).send("Dad mode set to true");
+			}else if(arguments[1] === "off"){
+				dadMode = false;
+				console.log(dadMode);
+				message.guild.channels.find("name", senderChannel).send("Dad mode set to false");
+			}else{
+				message.guild.channels.find("name", senderChannel).send("No or wrong arguments given. ('on' or 'off'). Current state is " + dadMode);
+			}
 			break;
 			default:
 		}
 	};
+	if((messageWords.includes(dadKey) | messageWords.includes(dadKey.toLowerCase()) | messageWords.includes(mispellKey) | messageWords.includes(mispellKey.toLowerCase())) && (message.author.username != "MoBot" && dadMode != false)){
+		if(messageWords.includes(dadKey)){
+			message.guild.channels.find("name", senderChannel).send("Hi " + messageWords[messageWords.indexOf(dadKey) + 1] + ", I'm Dad!");
+		}else if(messageWords.includes(dadKey.toLowerCase())){
+			message.guild.channels.find("name", senderChannel).send("Hi " + messageWords[messageWords.indexOf(dadKey.toLowerCase()) + 1] + ", I'm Dad!");
+		}else if(messageWords.includes(mispellKey)){
+			message.guild.channels.find("name", senderChannel).send("Hi " + messageWords[messageWords.indexOf(mispellKey) + 1] + ", I'm Dad!");
+		}else{
+			message.guild.channels.find("name", senderChannel).send("Hi " + messageWords[messageWords.indexOf(mispellKey.toLowerCase()) + 1] + ", I'm Dad!");
+		}
+	}
 	});
 
 client.on('message', message=>{
