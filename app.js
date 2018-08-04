@@ -138,8 +138,8 @@ client.on('message', message => {
 			message.guild.channels.find("name", senderChannel).send(sourceSub + " is not a valid subreddit. Please find a valid one at www.reddit.com");
 		}else{
 		var ranNum = Math.floor(Math.random() * data.data.children.length);  
-		var topPost = data.data.children[ranNum].data.url
-			 message.guild.channels.find("name", senderChannel).send(topPost);
+		var ranPost = data.data.children[ranNum].data.url
+			 message.guild.channels.find("name", senderChannel).send(ranPost);
 			 console.log(data.data.ch);
 			}
 		});
